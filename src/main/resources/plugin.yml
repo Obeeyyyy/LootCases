@@ -1,0 +1,5 @@
+name: LootCases
+version: 0.1
+author: Obey
+main: de.obey.lootcases.Init
+commands:
