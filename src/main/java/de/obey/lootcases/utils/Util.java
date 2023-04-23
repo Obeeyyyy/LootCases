@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.utils;
 /*
 
     Author - Obey -> LootCases
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 public final class Util {
 
     @Setter @Getter
-    private String prefix = "§a§lLootCases§8 »";
+    private String prefix = "§a§lLootCases §8»";
     @Setter @Getter
     private String messageColor = "§7";
     @Setter @Getter
@@ -30,7 +30,7 @@ public final class Util {
     }
 
     public void sendMessage(final CommandSender sender, final String message) {
-        sender.sendMessage(transform(prefix + " " + message));
+        sender.sendMessage(transform(prefix + "%c " + message));
     }
 
     public boolean hasPermission(final CommandSender sender, final String permission, final boolean send) {

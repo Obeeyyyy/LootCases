@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.handler;
 /*
 
     Author - Obey -> LootCases
@@ -8,6 +8,8 @@ package de.obey.lootcases;
  without permission from me, obey, the creator of this code.
 */
 
+import de.obey.lootcases.Init;
+import de.obey.lootcases.objects.UserCases;
 import lombok.experimental.UtilityClass;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;

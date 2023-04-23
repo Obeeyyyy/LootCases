@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.handler;
 /*
 
     Author - Obey -> LootCases
@@ -8,15 +8,22 @@ package de.obey.lootcases;
  without permission from me, obey, the creator of this code.
 */
 
+import de.obey.lootcases.Init;
+import de.obey.lootcases.objects.Case;
+import de.obey.lootcases.utils.Util;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,39 +41,83 @@ public final class CaseHandler {
 
     private final HashMap<String, Case> cases = new HashMap<>();
     private ArrayList<Block> caseBlocks = new ArrayList<>();
+    public final HashMap<Double, String> rarites = new HashMap<>();
 
     private Thread effectThread;
     private final EffectRunnable effectRunnable = new EffectRunnable();
 
     public CaseHandler() {}
 
+    public void setRarityForAllItems() {
+        if(cases.isEmpty())
+            return;
+
+        for (Case value : cases.values()) {
+            if(!value.getItems().isEmpty()) {
+                for (ItemStack item : value.getItems()) {
+                    value.setDisplayLoreForItem(item);
+                }
+            }
+        }
+    }
+
     public void startEffects() {
         effectThread = new Thread(effectRunnable);
         effectThread.start();
     }
 
+    public void loadRarities() {
+        rarites.clear();
+        if(data.contains("rarities")) {
+            data.getConfigurationSection("rarities").getKeys(false).forEach(chance -> {
+                rarites.put(Double.parseDouble(chance), data.getString("rarities." + chance));
+            });
+        } else {
+            data.set("rarities." + 10, "&cSelten");
+        }
+    }
+
+    public String getRarity(final double chance) {
+        String found = "§fCommon";
+
+        if(!rarites.isEmpty()) {
+            for (final double min : rarites.keySet()) {
+                if(chance <= min)
+                    found = rarites.get(min);
+            }
+        }
+
+        return ChatColor.translateAlternateColorCodes('&', found);
+    }
+
     public void loadCaseBlocks() {
         if(data.contains("caseblocks")) {
-            final List<String> locations = data.getStringList("caseblocks");
 
-            if(locations == null)
-                return;
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    final List<String> locations = data.getStringList("caseblocks");
 
-            locations.forEach(crypt -> {
-                final String[] cryptedData = crypt.split("#");
-                // So siehts in der file aus: weltname#x#y#z#yaw#pitch -> world#1#100#1#0#0
-                final Location location = new Location(Bukkit.getWorld(cryptedData[0]),
-                        Double.parseDouble(cryptedData[1]),
-                        Double.parseDouble(cryptedData[2]),
-                        Double.parseDouble(cryptedData[3]),
-                        Float.parseFloat(cryptedData[4]),
-                        Float.parseFloat(cryptedData[5]));
+                    if(locations == null)
+                        return;
 
-                if(location.getWorld() == null)
-                    return;
+                    locations.forEach(crypt -> {
+                        final String[] cryptedData = crypt.split("#");
+                        // So siehts in der file aus: weltname#x#y#z#yaw#pitch -> world#1#100#1#0#0
+                        final Location location = new Location(Bukkit.getWorld(cryptedData[0]),
+                                Double.parseDouble(cryptedData[1]),
+                                Double.parseDouble(cryptedData[2]),
+                                Double.parseDouble(cryptedData[3]),
+                                Float.parseFloat(cryptedData[4]),
+                                Float.parseFloat(cryptedData[5]));
 
-                caseBlocks.add(location.getBlock());
-            });
+                        if(location.getWorld() == null)
+                            return;
+
+                        caseBlocks.add(location.getBlock());
+                    });
+                }
+            }.runTaskLater(Init.getInstance(), 40);
         }
     }
 
@@ -88,12 +139,12 @@ public final class CaseHandler {
 
     public void addAccessBlock(final Block block) {
         caseBlocks.add(block);
+        block.setType(Material.ENDER_PORTAL_FRAME);
 
         final List<String> locations = data.getStringList("caseblocks");
 
         locations.add(block.getWorld().getName() +  "#" + block.getLocation().getX() + "#" + block.getLocation().getY() + "#" + block.getLocation().getZ() + "#" + block.getLocation().getYaw() + "#" + block.getLocation().getPitch());
         data.set("caseblocks", locations);
-        block.setType(Material.ENDER_CHEST);
 
         final ArmorStand holo = block.getWorld().spawn(block.getLocation().clone().add(0.5, -0.5, 0.5), ArmorStand.class);
         holo.setVisible(false); holo.setGravity(false); holo.setCustomName(Util.transform("%h§k--%c§l LootCases %h§k--")); holo.setCustomNameVisible(true);
@@ -132,6 +183,27 @@ public final class CaseHandler {
 
         cases.get(caseName).delete();
         cases.remove(caseName);
+    }
+
+    public Case getCaseFromDisplayItem(final ItemStack item) {
+        if(!item.hasItemMeta() || !item.getItemMeta().hasLore())
+            return null;
+
+        for (Case value : cases.values()) {
+            if(value.getCasePrefix().equalsIgnoreCase(item.getItemMeta().getDisplayName()))
+                return value;
+        }
+
+        return null;
+    }
+
+    public boolean exist(final CommandSender sender, final String caseName) {
+        if(!exist(caseName)) {
+            Util.sendMessage(sender, "There is no case named §8'§f "+ caseName +" §8'%c§8.");
+            return false;
+        }
+
+        return true;
     }
 
     public boolean exist(final String caseName) {

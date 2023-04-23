@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.utils;
 /*
 
     Author - Obey -> Some Project

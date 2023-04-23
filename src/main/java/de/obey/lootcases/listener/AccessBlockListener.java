@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.listener;
 /*
 
     Author - Obey -> LootCases
@@ -8,6 +8,9 @@ package de.obey.lootcases;
  without permission from me, obey, the creator of this code.
 */
 
+import de.obey.lootcases.handler.DataHandler;
+import de.obey.lootcases.Init;
+import de.obey.lootcases.utils.Util;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,14 +25,17 @@ public final class AccessBlockListener implements Listener {
     public void on(final BlockBreakEvent event) {
         final Player player = event.getPlayer();
 
-        if(!player.isSneaking())
-            return;
-
-        if(!Util.hasPermission(player, "admin", false) || player.getGameMode() != GameMode.CREATIVE)
-            return;
-
         if(!Init.getInstance().getCaseHandler().getCaseBlocks().contains(event.getBlock()))
             return;
+
+        if(!Util.hasPermission(player, "admin", true) || player.getGameMode() != GameMode.CREATIVE)
+            return;
+
+        if(!player.isSneaking()) {
+            Util.sendMessage(player, "Sneake um diesen Block zu zerstören§8.");
+            event.setCancelled(true);
+            return;
+        }
 
         Init.getInstance().getCaseHandler().removeAccessBlock(event.getBlock());
         Util.sendMessage(player, "Access Block wurde zerstört§8.");
@@ -48,6 +54,6 @@ public final class AccessBlockListener implements Listener {
 
         final Player player = event.getPlayer();
 
-        player.openInventory(DataHandler.get(player).getUpdatedCaseInventory());
+        player.openInventory(DataHandler.get(player).updatedCaseInventory());
     }
 }

@@ -1,4 +1,4 @@
-package de.obey.lootcases;
+package de.obey.lootcases.listener;
 /*
 
     Author - Obey -> LootCases
@@ -8,6 +8,7 @@ package de.obey.lootcases;
  without permission from me, obey, the creator of this code.
 */
 
+import de.obey.lootcases.handler.DataHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;

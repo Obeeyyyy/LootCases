@@ -8,6 +8,12 @@ package de.obey.lootcases;
  without permission from me, obey, the creator of this code.
 */
 
+import de.obey.lootcases.commands.LootCasesCommand;
+import de.obey.lootcases.handler.CaseHandler;
+import de.obey.lootcases.handler.DataHandler;
+import de.obey.lootcases.listener.*;
+import de.obey.lootcases.objects.Case;
+import de.obey.lootcases.utils.Util;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -37,10 +43,6 @@ public final class Init extends JavaPlugin {
         loadFolderAndFiles();
         loadListener();
         loadCommands();
-
-        caseHandler.loadCaseBlocks();
-        caseHandler.loadCases();
-        caseHandler.startEffects();
 
         DataHandler.startSavingRunnable();
     }
@@ -75,7 +77,7 @@ public final class Init extends JavaPlugin {
         if(caseHandler.getData().contains("prefix")) {
             Util.setPrefix(caseHandler.getData().getString("prefix"));
         } else {
-            caseHandler.getData().set("prefix", "&a&lLootCases &8 »");
+            caseHandler.getData().set("prefix", "&a&lLootCases &8»");
         }
 
         if(caseHandler.getData().contains("messagecolor")) {
@@ -89,6 +91,11 @@ public final class Init extends JavaPlugin {
         } else {
             caseHandler.getData().set("highlightcolor", "&a");
         }
+
+        caseHandler.loadRarities();
+        caseHandler.loadCaseBlocks();
+        caseHandler.loadCases();
+        caseHandler.startEffects();
     }
 
     private void loadListener() {
@@ -97,6 +104,9 @@ public final class Init extends JavaPlugin {
         pluginManager.registerEvents(new AccessBlockListener(), this);
         pluginManager.registerEvents(new LoadDataListener(), this);
         pluginManager.registerEvents(new CasesInventoryListener(), this);
+        pluginManager.registerEvents(new EditCaseListener(), this);
+        pluginManager.registerEvents(new PreviewListener(), this);
+        pluginManager.registerEvents(new ChanceEditListener(), this);
     }
 
     private void loadCommands() {
@@ -109,6 +119,8 @@ public final class Init extends JavaPlugin {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        caseHandler.getCases().values().forEach(Case::saveData);
     }
 
     public static Init getInstance() {
