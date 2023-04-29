@@ -23,7 +23,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -146,6 +149,62 @@ public final class Case {
         item.setItemMeta(meta);
     }
 
+    public void balanceChances(final ArrayList<ItemStack> items) {
+        final double[] currentSum = {0};
+
+        this.items.forEach(item -> {
+            if (!items.contains(item))
+                currentSum[0] += getChanceFromItem(item);
+        });
+
+        if (currentSum[0] >= 100)
+            return;
+
+        if (items.isEmpty())
+            return;
+
+        final double chance = (100 - currentSum[0]) / items.size();
+
+        DataHandler.executor.submit(() -> {
+            items.forEach(item -> {
+                this.items.remove(item);
+                final ItemMeta meta = item.getItemMeta();
+                ArrayList<String> lore = new ArrayList<>();
+
+                final DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
+
+                if (!item.getItemMeta().hasLore()) {
+                    lore.add("");
+                    lore.add("§8┌ §7Chance§8:§f§o " + chance + "%");
+                    lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
+
+                    meta.setLore(lore);
+                } else {
+                    lore = (ArrayList<String>) meta.getLore();
+
+                    if (!lore.get(lore.size() - 2).startsWith("§8┌ §7Chance§8:§f§o ")) {
+                        lore.add("");
+                        lore.add("§8┌ §7Chance§8:§f§o " + chance + "%");
+                        lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
+
+                    } else {
+
+                        lore.remove(lore.size() - 1);
+                        lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
+                    }
+                }
+
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+
+                this.items.add(item);
+            });
+        });
+
+        saveData();
+        setChanceItems();
+    }
+
     private double getChanceFromItem(final ItemStack item) {
         if(!item.hasItemMeta())
             return 0;
@@ -161,8 +220,6 @@ public final class Case {
             return;
 
         chanceList = new ArrayList<>();
-
-        //.getInstance().getExecutorService().execute(() -> {
 
         items.forEach(item -> {
             final double chance = getChanceFromItem(item);

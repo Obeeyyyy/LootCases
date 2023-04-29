@@ -132,7 +132,7 @@ public final class CaseHandler {
     private void loadCaseFromFile(final File file){
         final String caseName = file.getName().split(".yml")[0].toLowerCase();
 
-        Bukkit.getConsoleSender().sendMessage("§8-> §a§oloaded case§7: §f" + caseName);
+        Bukkit.getConsoleSender().sendMessage("§8-> §a§oloaded Case§7: §f" + caseName);
 
         cases.put(caseName, new Case(caseName));
     }

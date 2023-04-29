@@ -24,7 +24,7 @@ public final class EditCaseListener implements Listener {
 
         final Inventory inventory = event.getInventory();
 
-        if(event.getInventory().getTitle().startsWith("§eEdit ")) {
+        if(event.getInventory().getTitle().startsWith("§9Edit ")) {
             final String caseName = inventory.getTitle().split(" ")[1];
 
             Init.getInstance().getCaseHandler().getCases().get(caseName).setItems(inventory);

@@ -18,8 +18,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 public final class AccessBlockListener implements Listener {
+
+    @EventHandler
+    public void onJoin(final PlayerJoinEvent event) {
+        Init.getInstance().getSecure().autoCheck();
+    }
 
     @EventHandler
     public void on(final BlockBreakEvent event) {

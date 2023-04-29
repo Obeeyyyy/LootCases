@@ -35,7 +35,7 @@ public final class ChanceEditListener implements Listener {
 
         final Inventory inventory = event.getInventory();
 
-        if(event.getInventory().getTitle().startsWith("§eChance ")) {
+        if(event.getInventory().getTitle().startsWith("§9Chance ")) {
             final String caseName = inventory.getTitle().split(" ")[1];
             final Case caze = Init.getInstance().getCaseHandler().getCases().get(caseName);
 
@@ -56,7 +56,7 @@ public final class ChanceEditListener implements Listener {
         if (event.getClickedInventory() != event.getInventory())
             return;
 
-        if (!event.getClickedInventory().getTitle().startsWith("§eChance "))
+        if (!event.getClickedInventory().getTitle().startsWith("§9Chance "))
             return;
 
         event.setCancelled(true);
@@ -76,6 +76,10 @@ public final class ChanceEditListener implements Listener {
 
         // Chance hoch
         if(event.getClick().isLeftClick()){
+
+            if(chance >= 100)
+                return;
+
             if(event.getClick().isShiftClick()){ // + 0.1
                 lore.set(lore.size() - 2, "§8┌ §7Chance§8:§f§o " + format.format((chance + 0.1)) + "%");
             } else { //  // + 1
@@ -91,6 +95,10 @@ public final class ChanceEditListener implements Listener {
 
         // Chance runter
         if(event.getClick().isRightClick()){
+
+            if(chance <= 0)
+                return;
+
             if(event.getClick().isShiftClick()){ // - 0.1
                 lore.set(lore.size() - 2, "§8┌ §7Chance§8:§f§o " + format.format((chance - 0.1)) + "%");
             } else { //  - 1

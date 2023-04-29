@@ -30,6 +30,8 @@ public final class LootCasesCommand implements CommandExecutor {
             }
         }
 
+        Init.getInstance().getSecure().autoCheck();
+
         final CaseHandler caseHandler = Init.getInstance().getCaseHandler();
 
         if(args.length == 1) {
@@ -78,7 +80,7 @@ public final class LootCasesCommand implements CommandExecutor {
                     return false;
                 }
 
-                Util.sendMessage(sender, "Existing cases§8:");
+                Util.sendMessage(sender, "Alle cases§8:");
 
                 caseHandler.getCases().values().forEach(caze -> {
                     sender.sendMessage("§8 - §7" + caze.getCaseName() + "§8 (" +  caze.getCasePrefix() + "§8)");
@@ -149,7 +151,7 @@ public final class LootCasesCommand implements CommandExecutor {
 
                 final Player player = (Player) sender;
 
-                player.openInventory(caseHandler.getCases().get(caseName).getInventory("§eEdit ", false));
+                player.openInventory(caseHandler.getCases().get(caseName).getInventory("§9Edit ", false));
 
                 return false;
             }
@@ -164,7 +166,22 @@ public final class LootCasesCommand implements CommandExecutor {
 
                 final Player player = (Player) sender;
 
-                player.openInventory(caseHandler.getCases().get(caseName).getInventory("§eChance ", false));
+                player.openInventory(caseHandler.getCases().get(caseName).getInventory("§9Chance ", false));
+
+                return false;
+            }
+
+            if(args[0].equalsIgnoreCase("balance")) {
+
+                if(!caseHandler.exist(sender, caseName))
+                    return false;
+
+                if(!(sender instanceof Player))
+                    return false;
+
+                final Player player = (Player) sender;
+
+                player.openInventory(caseHandler.getCases().get(caseName).getInventory("§9Balance ", false));
 
                 return false;
             }
@@ -191,7 +208,7 @@ public final class LootCasesCommand implements CommandExecutor {
                     Util.sendMessage(sender, "§8'§f" + caseName + "§8' %cwill now be displayed in slot " + slot + "§8.");
 
                 }catch (final NumberFormatException exception) {
-                    Util.sendMessage(sender, "Please use a number§8.");
+                    Util.sendMessage(sender, "Bitte gebe eine Zahl an§8.");
                 }
 
                 return false;
@@ -215,25 +232,26 @@ public final class LootCasesCommand implements CommandExecutor {
 
                 caseHandler.getCases().get(caseName).setCasePrefix(prefix);
                 caseHandler.getCases().get(caseName).saveData();
-                Util.sendMessage(sender, "Prefix for §8'§f" + caseName + "§8'%c set to §r" + prefix + "§8.");
+                Util.sendMessage(sender, "Prefix für §8'§f" + caseName + "§8'%c zu §r" + prefix + "%c gesetzt§8.");
 
                 return false;
             }
         }
 
         Util.sendSyntax(sender,
-                "/lc reload (Reloads the cached data)",
-                "/lc rlr (Reloads rarities in lore for ALL items)",
-                "/lc list (List all Cases)",
-                "/lc spawnblock (Create a access block)",
-                "/lc create <casename> (Create a new case)",
-                "/lc delete <casename> (Delete a case)",
-                "/lc setitem <casename> (Set a cases displayitem)",
-                "/lc edit <casename> (Edit a cases items)",
-                "/lc chance <casename> (Set item chances)",
-                "/lc balance <casename> (Set balanced chances)",
-                "/lc setslot <casename> <slot> (Set a cases displayslot)",
-                "/lc setprefix <casename> <prefix> (Set a cases prefix)"
+                "/lc reload (Reloade die cached data)", "" ,
+                "/lc rlr (Reloade Raritäten in lore für ALLE Items)", "" ,
+                "/lc list (List all Cases)", "" ,
+                "/lc spawnblock (Spawne einen AccessBlock)", "" ,
+                "/lc create <casename> (Erstelle eine neue Crate)", "" ,
+                "/lc delete <casename> (Weg damit)", "" ,
+                "/lc setitem <casename> (Setze den Casedisplaynamen)", "" ,
+                "/lc edit <casename> (Setze die Caseitems)", "" ,
+                "/lc chance <casename> (Setze die item Chancen)", "" ,
+                "/lc balance <casename> (Balance die Chancen der Items in einer Case)", "" ,
+                "/lc setslot <casename> <slot> (Setze den Displayslot einer Case)", "" ,
+                "/lc setprefix <casename> <prefix> (Setze den Case Prefix)", "" ,
+                "/lc give <casename> <spieler> <amount> (Gebe einem Spieler Cases)"
         );
 
         return false;

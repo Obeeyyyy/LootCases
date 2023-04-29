@@ -8,7 +8,6 @@ package de.obey.lootcases.objects;
  without permission from me, obey, the creator of this code.
 */
 
-import de.obey.lootcases.objects.Case;
 import de.obey.lootcases.Init;
 import de.obey.lootcases.handler.DataHandler;
 import de.obey.lootcases.utils.ItemBuilder;
@@ -38,7 +37,7 @@ public final class UserCases {
 
     private long lastSeen = System.currentTimeMillis();
 
-    private Inventory caseInventory = Bukkit.createInventory(null, 9*5, Util.transform("%cYour %hcases"));
+    private Inventory caseInventory = Bukkit.createInventory(null, 9*5, Util.transform("%cDeine %hCases"));
 
     public UserCases(final UUID uuid) {
         this.uuid = uuid;
@@ -78,30 +77,16 @@ public final class UserCases {
                     final ArrayList<String> lore = new ArrayList<>();
 
                     lore.add("");
-                    lore.add(Util.transform("§8➥ %cYou have %h" + getAmountOfCase(currentCase.getCaseName()) + " " + currentCase.getCasePrefix() + "%c cases§8."));
+                    lore.add(Util.transform("§8➥ %cDu hast %h" + getAmountOfCase(currentCase.getCaseName()) + " " + currentCase.getCasePrefix() + "%c Cases§8."));
                     lore.add("");
-                    lore.add(Util.transform("§8➥ %cRightclick to view the Case§8."));
-                    lore.add(Util.transform("§8➥ %cLeftclick to open 1 Case§8."));
+                    lore.add(Util.transform("§8➥ %cRechtsklick §8- %cÖffne die Preview§8."));
+                    lore.add(Util.transform("§8➥ %cLinksklick §8- %cÖffne eine Case§8."));
                     lore.add("");
 
                     meta.setLore(lore);
                     item.setItemMeta(meta);
 
                     caseInventory.setItem(currentCase.getDisplaySlot(), item);
-
-                    /*
-                    caseInventory
-                            .setItem(currentCase.getDisplaySlot(),
-                                    new ItemBuilder(currentCase.getDisplayItem().getType(),1)
-                                            .setDisplayname(currentCase.getCasePrefix())
-                                            .setLore("",
-                                                    "§8➥ %cYou have %h" + getAmountOfCase(currentCase.getCaseName()) + " " + currentCase.getCasePrefix() + "%c cases§8.",
-                                                    "",
-                                                    "§8➥ %cRightclick to view the Case§8.",
-                                                    "§8➥ %cLeftclick to open 1 Case§8.")
-                                            .build());
-
-                     */
                 }
             }
         });

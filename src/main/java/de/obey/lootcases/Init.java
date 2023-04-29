@@ -13,8 +13,10 @@ import de.obey.lootcases.handler.CaseHandler;
 import de.obey.lootcases.handler.DataHandler;
 import de.obey.lootcases.listener.*;
 import de.obey.lootcases.objects.Case;
+import de.obey.lootcases.utils.IlIIlllIl;
 import de.obey.lootcases.utils.Util;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
@@ -28,16 +30,22 @@ public final class Init extends JavaPlugin {
 
     private CaseHandler caseHandler;
 
+    @Getter
+    private IlIIlllIl secure;
+
     @Override
     public void onDisable() {
-        caseHandler.getEffectRunnable().stop();
-        caseHandler.getEffectThread().stop();
+        if(caseHandler != null) {
+            caseHandler.getEffectRunnable().stop();
+            caseHandler.getEffectThread().stop();
+        }
+
         saveFiles();
     }
 
     @Override
     public void onEnable() {
-
+        secure = new IlIIlllIl();
         caseHandler = new CaseHandler();
 
         loadFolderAndFiles();
@@ -92,6 +100,11 @@ public final class Init extends JavaPlugin {
             caseHandler.getData().set("highlightcolor", "&a");
         }
 
+        if(secure == null) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         caseHandler.loadRarities();
         caseHandler.loadCaseBlocks();
         caseHandler.loadCases();
@@ -107,6 +120,7 @@ public final class Init extends JavaPlugin {
         pluginManager.registerEvents(new EditCaseListener(), this);
         pluginManager.registerEvents(new PreviewListener(), this);
         pluginManager.registerEvents(new ChanceEditListener(), this);
+        pluginManager.registerEvents(new BalanceListener(), this);
     }
 
     private void loadCommands() {
