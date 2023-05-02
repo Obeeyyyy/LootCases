@@ -45,6 +45,7 @@ public final class Animation {
 
         if(instant) {
             giveWin(player, getRandomItem());
+            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
             return;
         }
 
