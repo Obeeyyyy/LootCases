@@ -11,15 +11,18 @@ package de.obey.lootcases.objects;
 import de.obey.lootcases.Init;
 import de.obey.lootcases.handler.DataHandler;
 import de.obey.lootcases.utils.ItemBuilder;
+import de.obey.lootcases.utils.Util;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +30,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,6 +47,30 @@ public final class Case {
     private ArrayList<ItemStack> items, chanceList;
 
     private final String path;
+
+    public ItemStack getRandomItem() {
+        if(chanceList == null || chanceList.isEmpty())
+            return null;
+
+        return chanceList.get(new Random().nextInt(chanceList.size()));
+    }
+
+    public void giveReward(final Player player) {
+        final ItemStack win = getRandomItem().clone();
+        final ItemMeta meta = win.getItemMeta();
+
+        final ArrayList<String> lore = (ArrayList<String>) meta.getLore();
+
+        lore.remove(lore.size() - 1);
+        lore.remove(lore.size() - 1);
+        lore.remove(lore.size() - 1);
+
+        meta.setLore(lore);
+        win.setItemMeta(meta);
+
+        Util.giveItem(player, win);
+
+    }
 
     public Case(final String caseName) {
         this.caseName = caseName.toLowerCase();
@@ -80,6 +108,8 @@ public final class Case {
         displayItem = data.getItemStack(path + "displayitem");
         displaySlot = data.getInt(path + "displayslot");
         items = (ArrayList<ItemStack>) data.getList(path + "items");
+
+        setChanceItems();
     }
 
     public Inventory getInventory(final String name, final boolean prefix){
@@ -134,7 +164,6 @@ public final class Case {
                 lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(0));
 
             } else {
-
                 lore.remove(lore.size() - 1);
                 lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(getChanceFromItem(item)));
             }
@@ -165,44 +194,50 @@ public final class Case {
 
         final double chance = (100 - currentSum[0]) / items.size();
 
-        DataHandler.executor.submit(() -> {
-            items.forEach(item -> {
-                this.items.remove(item);
-                final ItemMeta meta = item.getItemMeta();
-                ArrayList<String> lore = new ArrayList<>();
+        DataHandler.executor.submit(() -> items.forEach(item -> {
+            this.items.remove(item);
+            final ItemMeta meta = item.getItemMeta();
+            ArrayList<String> lore = new ArrayList<>();
 
-                final DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
+            final DecimalFormat format = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
 
-                if (!item.getItemMeta().hasLore()) {
-                    lore.add("");
-                    lore.add("§8┌ §7Chance§8:§f§o " + chance + "%");
-                    lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
-
-                    meta.setLore(lore);
-                } else {
-                    lore = (ArrayList<String>) meta.getLore();
-
-                    if (!lore.get(lore.size() - 2).startsWith("§8┌ §7Chance§8:§f§o ")) {
-                        lore.add("");
-                        lore.add("§8┌ §7Chance§8:§f§o " + chance + "%");
-                        lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
-
-                    } else {
-
-                        lore.remove(lore.size() - 1);
-                        lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
-                    }
-                }
+            if (!item.getItemMeta().hasLore()) {
+                lore.add("");
+                lore.add("§8┌ §7Chance§8:§f§o " + format.format(chance) + "%");
+                lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
 
                 meta.setLore(lore);
-                item.setItemMeta(meta);
+            } else {
+                lore = (ArrayList<String>) meta.getLore();
 
-                this.items.add(item);
-            });
-        });
+                if (!lore.get(lore.size() - 2).startsWith("§8┌ §7Chance§8:§f§o ")) {
+                    lore.add("");
+                    lore.add("§8┌ §7Chance§8:§f§o " + format.format(chance) + "%");
+                    lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
+
+                } else {
+
+                    lore.remove(lore.size() - 1);
+                    lore.remove(lore.size() - 1);
+                    lore.add("§8┌ §7Chance§8:§f§o " + format.format(chance) + "%");
+                    lore.add("§8└ §7Rarity§8:§f§o " + Init.getInstance().getCaseHandler().getRarity(chance));
+                }
+            }
+
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+
+            this.items.add(item);
+        }));
 
         saveData();
-        setChanceItems();
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                setChanceItems();
+            }
+        }.runTaskLater(Init.getInstance(), 20*2);
     }
 
     private double getChanceFromItem(final ItemStack item) {
@@ -218,6 +253,8 @@ public final class Case {
     public void setChanceItems() {
         if(items.isEmpty())
             return;
+
+        if(chanceList != null) chanceList.clear();
 
         chanceList = new ArrayList<>();
 

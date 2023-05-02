@@ -14,6 +14,7 @@ import lombok.experimental.UtilityClass;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 @UtilityClass
 public final class Util {
@@ -54,6 +55,14 @@ public final class Util {
 
         for (String line : lines)
             sender.sendMessage("§8 - §7" + line);
+    }
+    public void giveItem(final Player player, final ItemStack item) {
+        if(player.getInventory().firstEmpty() == -1) {
+            player.getWorld().dropItem(player.getLocation(), item);
+            return;
+        }
+
+        player.getInventory().addItem(item);
     }
 
 }

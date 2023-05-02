@@ -44,6 +44,9 @@ public final class DataHandler {
             @Override
             public void run() {
 
+                if(userData.isEmpty())
+                    return;
+
                 userData.values().forEach(data -> {
                     data.saveData();
 

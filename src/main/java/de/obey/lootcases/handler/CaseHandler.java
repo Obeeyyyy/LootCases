@@ -10,18 +10,18 @@ package de.obey.lootcases.handler;
 
 import de.obey.lootcases.Init;
 import de.obey.lootcases.objects.Case;
+import de.obey.lootcases.objects.UserCases;
+import de.obey.lootcases.utils.Animation;
 import de.obey.lootcases.utils.Util;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -41,12 +41,30 @@ public final class CaseHandler {
 
     private final HashMap<String, Case> cases = new HashMap<>();
     private ArrayList<Block> caseBlocks = new ArrayList<>();
+    private final HashMap<Player, Animation> animations = new HashMap<>();
     public final HashMap<Double, String> rarites = new HashMap<>();
 
     private Thread effectThread;
     private final EffectRunnable effectRunnable = new EffectRunnable();
 
     public CaseHandler() {}
+
+    public void openCase(final Player player, final Case caze, final boolean instant){
+        if(animations.containsKey(player))
+            return;
+
+        final UserCases userCases = DataHandler.get(player);
+
+        if(userCases.getAmountOfCase(caze.getCaseName()) <= 0) {
+            player.playSound(player.getLocation(), Sound.EXPLODE, 0.1f, 0.1f);
+            return;
+        }
+
+        userCases.removeCase(caze.getCaseName(), 1);
+        userCases.updatedCaseInventory();
+
+        new Animation(player, caze, instant);
+    }
 
     public void setRarityForAllItems() {
         if(cases.isEmpty())
@@ -68,6 +86,9 @@ public final class CaseHandler {
 
     public void loadRarities() {
         rarites.clear();
+
+        final YamlConfiguration data = YamlConfiguration.loadConfiguration(new File(Init.getInstance().getDataFolder().getPath() + "/data.yml"));
+
         if(data.contains("rarities")) {
             data.getConfigurationSection("rarities").getKeys(false).forEach(chance -> {
                 rarites.put(Double.parseDouble(chance), data.getString("rarities." + chance));
@@ -79,11 +100,16 @@ public final class CaseHandler {
 
     public String getRarity(final double chance) {
         String found = "§fCommon";
+        double currentMin = 1000;
 
         if(!rarites.isEmpty()) {
             for (final double min : rarites.keySet()) {
-                if(chance <= min)
-                    found = rarites.get(min);
+                if(chance <= min) {
+                    if (currentMin >= min) {
+                        found = rarites.get(min);
+                        currentMin = min;
+                    }
+                }
             }
         }
 

@@ -10,6 +10,7 @@ package de.obey.lootcases.objects;
 
 import de.obey.lootcases.Init;
 import de.obey.lootcases.handler.DataHandler;
+import de.obey.lootcases.utils.Animation;
 import de.obey.lootcases.utils.ItemBuilder;
 import de.obey.lootcases.utils.Util;
 import lombok.Getter;
@@ -17,13 +18,16 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -58,8 +62,8 @@ public final class UserCases {
 
     public Inventory updatedCaseInventory() {
 
-        if(!caseInventory.getTitle().equalsIgnoreCase(Util.transform("%cYour %hCases")))
-            caseInventory = Bukkit.createInventory(null, 9*5, Util.transform("%cYour %hCases"));
+        if(!caseInventory.getTitle().equalsIgnoreCase(Util.transform("%cDeine %hCases")))
+            caseInventory = Bukkit.createInventory(null, 9*5, Util.transform("%cDeine %hCases"));
 
         DataHandler.executor.submit(() -> {
             for (final Case currentCase : Init.getInstance().getCaseHandler().getCases().values()) {
@@ -77,10 +81,11 @@ public final class UserCases {
                     final ArrayList<String> lore = new ArrayList<>();
 
                     lore.add("");
-                    lore.add(Util.transform("§8➥ %cDu hast %h" + getAmountOfCase(currentCase.getCaseName()) + " " + currentCase.getCasePrefix() + "%c Cases§8."));
+                    lore.add(Util.transform("§8➥ %cDu hast %h" + NumberFormat.getInstance().format(getAmountOfCase(currentCase.getCaseName())) + " " + currentCase.getCasePrefix() + "%c Cases§8."));
                     lore.add("");
                     lore.add(Util.transform("§8➥ %cRechtsklick §8- %cÖffne die Preview§8."));
                     lore.add(Util.transform("§8➥ %cLinksklick §8- %cÖffne eine Case§8."));
+                    lore.add(Util.transform("§8➥ %cShift + Linksklick §8- %cÖffne eine Case ohne Animation§8."));
                     lore.add("");
 
                     meta.setLore(lore);
@@ -95,7 +100,18 @@ public final class UserCases {
     }
 
     public int getAmountOfCase(final String caseName) {
+        if(!data.contains("cases." + caseName))
+            return 0;
+
         return data.getInt("cases." + caseName);
+    }
+
+    public void addCase(final String caseName, final int amount) {
+        data.set("cases." + caseName, getAmountOfCase(caseName) + amount);
+    }
+
+    public void removeCase(final String caseName, final int amount) {
+        data.set("cases." + caseName, getAmountOfCase(caseName) - amount);
     }
 
     public void saveData() {

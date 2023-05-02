@@ -10,8 +10,12 @@ package de.obey.lootcases.commands;
 
 import de.obey.lootcases.Init;
 import de.obey.lootcases.handler.CaseHandler;
+import de.obey.lootcases.handler.DataHandler;
+import de.obey.lootcases.objects.UserCases;
 import de.obey.lootcases.utils.Util;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -215,6 +219,34 @@ public final class LootCasesCommand implements CommandExecutor {
             }
         }
 
+        if(args.length == 4) {
+            if (args[0].equalsIgnoreCase("add")) {
+                final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[1]);
+
+                if (offlinePlayer == null) {
+                    Util.sendMessage(sender, args[1] + " war noch nie auf dem Server§8.");
+                    return false;
+                }
+
+                final String caseName = args[2].toLowerCase();
+
+                if (!caseHandler.exist(sender, caseName))
+                    return false;
+
+                final UserCases userCases = DataHandler.get(offlinePlayer.getUniqueId());
+
+                try {
+                    final int amount = Integer.parseInt(args[3]);
+                    userCases.addCase(caseName, amount);
+                    Util.sendMessage(sender, offlinePlayer.getName() + " hat %h" + amount + "%c " + caseName + " Cases bekommen§8.");
+                } catch (final NumberFormatException exception) {
+                    Util.sendMessage(sender, "Bitte gebe eine Zahl an§8.");
+                }
+
+                return false;
+            }
+        }
+
         if(args.length >= 3) {
             if(args[0].equalsIgnoreCase("setprefix")) {
 
@@ -251,7 +283,7 @@ public final class LootCasesCommand implements CommandExecutor {
                 "/lc balance <casename> (Balance die Chancen der Items in einer Case)", "" ,
                 "/lc setslot <casename> <slot> (Setze den Displayslot einer Case)", "" ,
                 "/lc setprefix <casename> <prefix> (Setze den Case Prefix)", "" ,
-                "/lc give <casename> <spieler> <amount> (Gebe einem Spieler Cases)"
+                "/lc add <spieler> <casename> <amount> (Gebe einem Spieler Cases)"
         );
 
         return false;

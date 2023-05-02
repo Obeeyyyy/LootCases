@@ -115,6 +115,7 @@ public final class Init extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
 
         pluginManager.registerEvents(new AccessBlockListener(), this);
+        pluginManager.registerEvents(new AnimationInventoryListener(), this);
         pluginManager.registerEvents(new LoadDataListener(), this);
         pluginManager.registerEvents(new CasesInventoryListener(), this);
         pluginManager.registerEvents(new EditCaseListener(), this);

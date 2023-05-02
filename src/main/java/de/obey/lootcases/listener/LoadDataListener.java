@@ -12,12 +12,18 @@ import de.obey.lootcases.handler.DataHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public final class LoadDataListener implements Listener {
 
     @EventHandler
     public void on(AsyncPlayerPreLoginEvent event) {
         DataHandler.get(event.getUniqueId());
+    }
+
+    @EventHandler
+    public void on(final PlayerQuitEvent event) {
+        DataHandler.get(event.getPlayer()).saveData();
     }
 
 }

@@ -72,16 +72,16 @@ public final class BalanceListener implements Listener {
 
         if(event.getInventory().getTitle().startsWith("§9Balance ")) {
             if(!balanceItems.containsKey(player)){
-                Util.sendMessage(player, "§c§oEin Fehler ist aufgetrete, bitte versuche es erneut§8.");
+                Util.sendMessage(player, "Es wurden keine Items gebalanced§8.");
                 return;
             }
 
             final String caseName = event.getInventory().getTitle().split(" ")[1];
-            final Case crate = Init.getInstance().getCaseHandler().getCases().get(caseName);
+            final Case caze = Init.getInstance().getCaseHandler().getCases().get(caseName);
 
-            crate.balanceChances(balanceItems.get(player));
+            caze.balanceChances(balanceItems.get(player));
+            balanceItems.remove(player);
             Util.sendMessage(player, "Die gewählten Items wurden gebalanced§8.");
-            return;
         }
     }
 

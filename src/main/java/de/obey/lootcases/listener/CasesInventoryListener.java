@@ -9,19 +9,28 @@ package de.obey.lootcases.listener;
 */
 
 import de.obey.lootcases.Init;
+import de.obey.lootcases.handler.CaseHandler;
+import de.obey.lootcases.handler.DataHandler;
 import de.obey.lootcases.objects.Case;
+import de.obey.lootcases.objects.UserCases;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import javax.xml.crypto.Data;
+
 public final class CasesInventoryListener implements Listener {
+
+    private CaseHandler caseHandler;
 
     @EventHandler
     public void on(final InventoryClickEvent event) {
 
-        if(!ChatColor.stripColor(event.getInventory().getTitle()).startsWith("Your"))
+        if(!ChatColor.stripColor(event.getInventory().getTitle()).startsWith("Deine"))
             return;
 
         event.setCancelled(true);
@@ -29,7 +38,10 @@ public final class CasesInventoryListener implements Listener {
         if(event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR)
             return;
 
-        final Case caze = Init.getInstance().getCaseHandler().getCaseFromDisplayItem(event.getCurrentItem());
+        if(caseHandler == null)
+            caseHandler = Init.getInstance().getCaseHandler();
+
+        final Case caze = caseHandler.getCaseFromDisplayItem(event.getCurrentItem());
 
         if (caze == null)
             return;
@@ -39,6 +51,10 @@ public final class CasesInventoryListener implements Listener {
             return;
         }
 
+        final Player player = (Player) event.getWhoClicked();
+
+        if(event.isLeftClick())
+            caseHandler.openCase(player, caze, event.isShiftClick());
     }
 
 
