@@ -54,6 +54,8 @@ public final class IlIIlllIl {
     }
 
     public void check() {
+        lastChecked = System.currentTimeMillis();
+
         Bukkit.getConsoleSender().sendMessage("§a§o" + name + "- Checking auth ...");
 
         final boolean state = getState();

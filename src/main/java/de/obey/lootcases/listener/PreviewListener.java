@@ -19,8 +19,10 @@ public final class PreviewListener implements Listener {
     @EventHandler
     public void on(final InventoryClickEvent event) {
 
-        if(event.getInventory().getTitle().startsWith("§7Preview "))
-            event.setCancelled(true);
+        if(!event.getInventory().getTitle().startsWith("§7Preview "))
+            return;
+
+        event.setCancelled(true);
 
         final Player player = (Player) event.getWhoClicked();
 

@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public final class CaseHandler {
     public final HashMap<Double, String> rarites = new HashMap<>();
 
     private Thread effectThread;
-    private final EffectRunnable effectRunnable = new EffectRunnable();
+    private EffectRunnable effectRunnable = new EffectRunnable();
 
     public CaseHandler() {}
 
@@ -80,8 +81,22 @@ public final class CaseHandler {
     }
 
     public void startEffects() {
-        effectThread = new Thread(effectRunnable);
-        effectThread.start();
+        if(effectThread != null) {
+            effectThread.stop();
+
+            effectRunnable.stop();
+        }
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+
+                effectRunnable = new EffectRunnable();
+                effectThread = new Thread(effectRunnable);
+                effectThread.start();
+
+            }
+        }.runTaskLater(Init.getInstance(), 10);
     }
 
     public void loadRarities() {
@@ -91,11 +106,16 @@ public final class CaseHandler {
 
         if(data.contains("rarities")) {
             data.getConfigurationSection("rarities").getKeys(false).forEach(chance -> {
+                Bukkit.getConsoleSender().sendMessage("§8-> §aloaded rarity " + chance + "% §f= §7" + data.getString("rarities." + chance));
                 rarites.put(Double.parseDouble(chance), data.getString("rarities." + chance));
             });
         } else {
             data.set("rarities." + 10, "&cSelten");
         }
+
+        try {
+            data.save(new File(Init.getInstance().getDataFolder().getPath() + "/data.yml"));
+        } catch (final IOException ignored) {}
     }
 
     public String getRarity(final double chance) {

@@ -13,6 +13,7 @@ import lombok.Getter;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,8 +21,7 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public final class EffectRunnable implements Runnable{
 
@@ -30,7 +30,6 @@ public final class EffectRunnable implements Runnable{
 
     @Getter
     private final Timer timer = new Timer();
-
 
     public void stop() {
         timer.cancel();
@@ -48,13 +47,13 @@ public final class EffectRunnable implements Runnable{
                 for (final Block caseBlock : Init.getInstance().getCaseHandler().getCaseBlocks()) {
                     final Location location = caseBlock.getLocation().clone().add(0.5, 0.5, 0.5);
 
-                        location.add(radius * Math.sin(angle), yOffset, radius * Math.cos(angle));
+                    location.add(radius * Math.sin(angle), yOffset, radius * Math.cos(angle));
 
-                        sendPacket(new PacketPlayOutWorldParticles(EnumParticle.CRIT_MAGIC, false,
-                                (float )location.getX(),
-                                (float) location.getY(),
-                                (float) location.getZ(),
-                                0.0f,0.0f, 0f, 0, 5, 0), caseBlock.getWorld());
+                    sendPacket(new PacketPlayOutWorldParticles(EnumParticle.CRIT_MAGIC, false,
+                            (float) location.getX(),
+                            (float) location.getY(),
+                            (float) location.getZ(),
+                            0.0f, 0.0f, 0f, 0, 5, 0), caseBlock);
                 }
 
                 angle += angleOffset;
@@ -74,10 +73,27 @@ public final class EffectRunnable implements Runnable{
         }, 500, 40);
     }
 
-    private void sendPacket(final Packet packet, final World world) {
-        for (Entity entity : world.getEntities()) {
-            if(entity instanceof Player)
-                ((CraftPlayer) entity).getHandle().playerConnection.sendPacket(packet);
+    private void sendPacket(final Packet<?> packet, final Block block) {
+        try {
+            if (block == null || block.getWorld() == null || block.getWorld().getEntities() == null)
+                return;
+
+            final ArrayList<Entity> entities = new ArrayList<>(Arrays.asList(block.getChunk().getEntities()));
+
+
+        for (int i = 1; i <= 2; i++) {
+            Collections.addAll(entities, block.getWorld().getChunkAt(block.getChunk().getX() - i, block.getChunk().getZ()).getEntities());
+            Collections.addAll(entities, block.getWorld().getChunkAt(block.getChunk().getX() + i, block.getChunk().getZ()).getEntities());
+
+            Collections.addAll(entities, block.getWorld().getChunkAt(block.getChunk().getX(), block.getChunk().getZ() - i).getEntities());
+            Collections.addAll(entities, block.getWorld().getChunkAt(block.getChunk().getX(), block.getChunk().getZ() + i).getEntities());
         }
+
+            for (Entity entity : entities) {
+                if (entity instanceof Player) {
+                    ((CraftPlayer) entity).getHandle().playerConnection.sendPacket(packet);
+                }
+            }
+        }catch (ConcurrentModificationException ignored) {}
     }
 }
