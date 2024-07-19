@@ -61,6 +61,10 @@ public final class ChanceEditListener implements Listener {
 
         event.setCancelled(true);
 
+        if(!Util.hasPermission(event.getWhoClicked(), "admin", false)) {
+            return;
+        }
+
         final Case caze = Init.getInstance().getCaseHandler().getCases().get(event.getInventory().getTitle().split(" ")[1]);
         final ItemStack item = event.getCurrentItem();
 
